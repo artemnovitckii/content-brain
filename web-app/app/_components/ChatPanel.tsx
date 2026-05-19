@@ -19,14 +19,26 @@ type Message = {
   streaming?: boolean;
 };
 
-function extractTextDelta(chunk: any): { text?: string; tool?: string } | null {
+type ChunkResult =
+  | { kind: "delta"; text: string }
+  | { kind: "complete"; text: string }
+  | { kind: "tool"; tool: string }
+  | null;
+
+// Claude's stream-json emits BOTH small text deltas (for live streaming) AND
+// a final complete assistant message (the canonical, fully-formatted version).
+// We tag them so the UI can:
+//   - append deltas as they stream (raw concat, no newlines between chunks)
+//   - REPLACE accumulated text with the complete message at the end (cleans
+//     up any partial-token artifacts and applies the final markdown formatting)
+function extractTextDelta(chunk: any): ChunkResult {
   if (!chunk || typeof chunk !== "object") return null;
-  // Claude stream-json formats vary slightly between versions; cover the
-  // common shapes we care about.
+
+  // Final, complete assistant message — replaces what we've streamed.
   if (chunk.type === "assistant" && chunk.message?.content) {
     for (const c of chunk.message.content) {
       if (c.type === "text" && typeof c.text === "string") {
-        return { text: c.text };
+        return { kind: "complete", text: c.text };
       }
       if (c.type === "tool_use") {
         const target =
@@ -35,19 +47,26 @@ function extractTextDelta(chunk: any): { text?: string; tool?: string } | null {
           c.input?.pattern ||
           c.input?.command ||
           "";
-        return { tool: `${c.name}${target ? `: ${String(target).slice(0, 120)}` : ""}` };
+        return {
+          kind: "tool",
+          tool: `${c.name}${target ? `: ${String(target).slice(0, 120)}` : ""}`,
+        };
       }
     }
   }
-  // Partial deltas: streaming content blocks
+
+  // Partial deltas — appended as-is.
   if (chunk.type === "stream_event" && chunk.event?.delta) {
     const d = chunk.event.delta;
     if (d.type === "text_delta" && typeof d.text === "string") {
-      return { text: d.text, /* delta */ };
+      return { kind: "delta", text: d.text };
     }
   }
-  if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
-    return { text: chunk.delta.text };
+  if (
+    chunk.type === "content_block_delta" &&
+    chunk.delta?.type === "text_delta"
+  ) {
+    return { kind: "delta", text: chunk.delta.text };
   }
   return null;
 }
@@ -107,11 +126,14 @@ export function ChatPanel({
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
-    // Accumulator: by default, assistant messages from claude come as a single
-    // text block per "assistant" event. We replace rather than append within
-    // the same chunk to avoid duplication.
-    let accumulatedText = "";
-    const seenTextBlocks = new Set<string>();
+    // Two-phase accumulator:
+    //   1. While streaming: append text deltas as raw concat (no separators).
+    //   2. When the final "complete" assistant message arrives: REPLACE the
+    //      whole text with that canonical version. This cleans up any
+    //      mid-token chunking artifacts and prevents double-rendering.
+    let deltaText = "";
+    let completed = false; // once true, ignore further deltas
+    const seenComplete = new Set<string>(); // de-dupe if claude re-emits
 
     try {
       const res = await fetch("/api/chat", {
@@ -153,26 +175,33 @@ export function ChatPanel({
           if (evt.type === "session" && evt.sessionId) {
             setSessionId(evt.sessionId);
           } else if (evt.type === "chunk") {
-            const delta = extractTextDelta(evt.data);
-            if (!delta) continue;
-            if (delta.text !== undefined) {
-              // De-dupe identical full-block emissions
-              const key = delta.text;
-              if (!seenTextBlocks.has(key)) {
-                seenTextBlocks.add(key);
-                accumulatedText += (accumulatedText ? "\n" : "") + delta.text;
-                setMessages((m) =>
-                  m.map((msg) =>
-                    msg.id === asstId ? { ...msg, text: accumulatedText } : msg
-                  )
-                );
-              }
-            }
-            if (delta.tool) {
+            const out = extractTextDelta(evt.data);
+            if (!out) continue;
+
+            if (out.kind === "delta" && !completed) {
+              // Live streaming: raw concat — claude's deltas are already
+              // word/token-aligned; adding any separator wrecks formatting.
+              deltaText += out.text;
+              setMessages((m) =>
+                m.map((msg) =>
+                  msg.id === asstId ? { ...msg, text: deltaText } : msg
+                )
+              );
+            } else if (out.kind === "complete") {
+              // Canonical message — replace the streamed approximation.
+              if (seenComplete.has(out.text)) continue; // de-dupe re-emits
+              seenComplete.add(out.text);
+              completed = true;
+              setMessages((m) =>
+                m.map((msg) =>
+                  msg.id === asstId ? { ...msg, text: out.text } : msg
+                )
+              );
+            } else if (out.kind === "tool") {
               setMessages((m) =>
                 m.map((msg) =>
                   msg.id === asstId
-                    ? { ...msg, tools: [...msg.tools, delta.tool!] }
+                    ? { ...msg, tools: [...msg.tools, out.tool] }
                     : msg
                 )
               );
