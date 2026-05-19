@@ -71,6 +71,41 @@ function extractTextDelta(chunk: any): ChunkResult {
   return null;
 }
 
+// localStorage key for persisting chat state per scope.
+function storageKeyFor(scope: Scope): string {
+  if (scope.type === "vault") return "chat:vault";
+  if (scope.type === "creator") return `chat:creator:${scope.slug}`;
+  return `chat:video:${scope.shortcode}`;
+}
+
+type Persisted = {
+  messages: Message[];
+  sessionId: string | null;
+  updatedAt: number;
+};
+
+function loadPersisted(key: string): Persisted | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as Persisted;
+    if (!Array.isArray(data.messages)) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function savePersisted(key: string, value: Persisted) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // quota exceeded — best-effort
+  }
+}
+
 export function ChatPanel({
   scope,
   title,
@@ -92,6 +127,30 @@ export function ChatPanel({
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const storageKey = storageKeyFor(scope);
+  const hydratedRef = useRef(false);
+
+  // Hydrate from localStorage on mount (scope-keyed)
+  useEffect(() => {
+    const persisted = loadPersisted(storageKey);
+    if (persisted) {
+      // Ensure no message is stuck in streaming state from a crashed session.
+      setMessages(persisted.messages.map((m) => ({ ...m, streaming: false })));
+      setSessionId(persisted.sessionId);
+    }
+    hydratedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
+
+  // Persist on every change (but skip the initial hydration tick)
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    savePersisted(storageKey, {
+      messages,
+      sessionId,
+      updatedAt: Date.now(),
+    });
+  }, [messages, sessionId, storageKey]);
 
   // Fetch the shortcode index once on mount so we can resolve [[XYZ]] to
   // clickable links in assistant messages.
@@ -276,6 +335,11 @@ export function ChatPanel({
     setMessages([]);
     setSessionId(null);
     setSending(false);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      /* ignore */
+    }
   }
 
   return (
@@ -326,7 +390,23 @@ export function ChatPanel({
               {m.role === "assistant" ? (
                 m.text ? (
                   <div className="prose prose-invert prose-sm prose-zinc max-w-none prose-p:my-2 prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1.5 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-code:rounded prose-code:bg-zinc-800 prose-code:px-1 prose-code:py-0.5 prose-code:text-emerald-300 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-800 prose-a:text-emerald-300 prose-strong:text-zinc-100">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{resolveWikiLinks(m.text)}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        a: ({ href, children, ...props }) => (
+                          <a
+                            {...props}
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {resolveWikiLinks(m.text)}
+                    </ReactMarkdown>
                   </div>
                 ) : m.streaming ? (
                   <Thinking />
