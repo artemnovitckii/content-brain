@@ -71,25 +71,58 @@ function extractTextDelta(chunk: any): ChunkResult {
   return null;
 }
 
-// localStorage key for persisting chat state per scope.
-function storageKeyFor(scope: Scope): string {
-  if (scope.type === "vault") return "chat:vault";
-  if (scope.type === "creator") return `chat:creator:${scope.slug}`;
-  return `chat:video:${scope.shortcode}`;
+// localStorage namespace for chat history per scope.
+function scopeKeyFor(scope: Scope): string {
+  if (scope.type === "vault") return "vault";
+  if (scope.type === "creator") return `creator:${scope.slug}`;
+  return `video:${scope.shortcode}`;
 }
 
-type Persisted = {
-  messages: Message[];
+type ChatRecord = {
+  id: string;
   sessionId: string | null;
+  messages: Message[];
+  title: string;
+  createdAt: number;
   updatedAt: number;
 };
 
-function loadPersisted(key: string): Persisted | null {
+type ScopeIndex = {
+  active: string | null;
+  ids: string[]; // newest first
+};
+
+const indexKey = (scopeKey: string) => `chats:${scopeKey}:index`;
+const recordKey = (scopeKey: string, chatId: string) =>
+  `chats:${scopeKey}:${chatId}`;
+
+function loadIndex(scopeKey: string): ScopeIndex {
+  if (typeof window === "undefined") return { active: null, ids: [] };
+  try {
+    const raw = localStorage.getItem(indexKey(scopeKey));
+    if (!raw) return { active: null, ids: [] };
+    const data = JSON.parse(raw) as ScopeIndex;
+    if (!Array.isArray(data.ids)) return { active: null, ids: [] };
+    return data;
+  } catch {
+    return { active: null, ids: [] };
+  }
+}
+
+function saveIndex(scopeKey: string, idx: ScopeIndex) {
+  try {
+    localStorage.setItem(indexKey(scopeKey), JSON.stringify(idx));
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadChat(scopeKey: string, chatId: string): ChatRecord | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(recordKey(scopeKey, chatId));
     if (!raw) return null;
-    const data = JSON.parse(raw) as Persisted;
+    const data = JSON.parse(raw) as ChatRecord;
     if (!Array.isArray(data.messages)) return null;
     return data;
   } catch {
@@ -97,13 +130,44 @@ function loadPersisted(key: string): Persisted | null {
   }
 }
 
-function savePersisted(key: string, value: Persisted) {
-  if (typeof window === "undefined") return;
+function saveChat(scopeKey: string, chat: ChatRecord) {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(recordKey(scopeKey, chat.id), JSON.stringify(chat));
   } catch {
-    // quota exceeded — best-effort
+    /* quota — best-effort */
   }
+}
+
+function deleteChat(scopeKey: string, chatId: string) {
+  try {
+    localStorage.removeItem(recordKey(scopeKey, chatId));
+    const idx = loadIndex(scopeKey);
+    const remaining = idx.ids.filter((i) => i !== chatId);
+    saveIndex(scopeKey, {
+      ids: remaining,
+      active: idx.active === chatId ? remaining[0] || null : idx.active,
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
+function deriveTitle(messages: Message[]): string {
+  const firstUser = messages.find((m) => m.role === "user");
+  if (!firstUser) return "New chat";
+  const cleaned = firstUser.text.replace(/\s+/g, " ").trim();
+  return cleaned.length > 60 ? cleaned.slice(0, 60) + "…" : cleaned || "New chat";
+}
+
+function timeAgo(ts: number): string {
+  const diff = Math.max(0, Date.now() - ts);
+  const m = Math.round(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  return `${d}d ago`;
 }
 
 export function ChatPanel({
@@ -127,30 +191,74 @@ export function ChatPanel({
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const storageKey = storageKeyFor(scope);
+  const scopeKey = scopeKeyFor(scope);
   const hydratedRef = useRef(false);
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [history, setHistory] = useState<
+    Array<{ id: string; title: string; updatedAt: number }>
+  >([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
-  // Hydrate from localStorage on mount (scope-keyed)
+  // Refresh the history list from localStorage (cheap, runs on hydration + after each save)
+  const refreshHistory = (scopeK: string) => {
+    const idx = loadIndex(scopeK);
+    const records = idx.ids
+      .map((id) => {
+        const r = loadChat(scopeK, id);
+        return r
+          ? { id: r.id, title: r.title, updatedAt: r.updatedAt }
+          : null;
+      })
+      .filter((x): x is { id: string; title: string; updatedAt: number } => !!x)
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+    setHistory(records);
+  };
+
+  // Hydrate: load index, restore active chat if it exists, else start blank
   useEffect(() => {
-    const persisted = loadPersisted(storageKey);
-    if (persisted) {
-      // Ensure no message is stuck in streaming state from a crashed session.
-      setMessages(persisted.messages.map((m) => ({ ...m, streaming: false })));
-      setSessionId(persisted.sessionId);
+    const idx = loadIndex(scopeKey);
+    if (idx.active) {
+      const chat = loadChat(scopeKey, idx.active);
+      if (chat) {
+        setChatId(chat.id);
+        setSessionId(chat.sessionId);
+        // Ensure no message is stuck in streaming state from a crashed session.
+        setMessages(chat.messages.map((m) => ({ ...m, streaming: false })));
+      }
     }
+    refreshHistory(scopeKey);
     hydratedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storageKey]);
+  }, [scopeKey]);
 
-  // Persist on every change (but skip the initial hydration tick)
+  // Persist after every change (skip the initial hydration tick)
   useEffect(() => {
     if (!hydratedRef.current) return;
-    savePersisted(storageKey, {
-      messages,
+    if (messages.length === 0) return; // don't materialize empty chats
+
+    // Lazily allocate a chat id on first user message
+    let id = chatId;
+    if (!id) {
+      id = crypto.randomUUID();
+      setChatId(id);
+    }
+
+    const record: ChatRecord = {
+      id,
       sessionId,
+      messages,
+      title: deriveTitle(messages),
+      createdAt: history.find((h) => h.id === id)?.updatedAt || Date.now(),
       updatedAt: Date.now(),
-    });
-  }, [messages, sessionId, storageKey]);
+    };
+    saveChat(scopeKey, record);
+
+    const idx = loadIndex(scopeKey);
+    const ids = [id, ...idx.ids.filter((x) => x !== id)];
+    saveIndex(scopeKey, { active: id, ids });
+    refreshHistory(scopeKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, sessionId]);
 
   // Fetch the shortcode index once on mount so we can resolve [[XYZ]] to
   // clickable links in assistant messages.
@@ -335,11 +443,37 @@ export function ChatPanel({
     setMessages([]);
     setSessionId(null);
     setSending(false);
-    try {
-      localStorage.removeItem(storageKey);
-    } catch {
-      /* ignore */
+    setChatId(null);
+    // Clear "active" so a fresh chat starts on next message, but KEEP the
+    // historical record around so the user can switch back to it.
+    const idx = loadIndex(scopeKey);
+    saveIndex(scopeKey, { ...idx, active: null });
+    refreshHistory(scopeKey);
+  }
+
+  function loadHistoryChat(id: string) {
+    abortRef.current?.abort();
+    const chat = loadChat(scopeKey, id);
+    if (!chat) return;
+    setChatId(chat.id);
+    setSessionId(chat.sessionId);
+    setMessages(chat.messages.map((m) => ({ ...m, streaming: false })));
+    setSending(false);
+    const idx = loadIndex(scopeKey);
+    saveIndex(scopeKey, { ...idx, active: id });
+    setHistoryOpen(false);
+  }
+
+  function removeHistoryChat(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    deleteChat(scopeKey, id);
+    if (chatId === id) {
+      // The active chat got deleted; reset the panel.
+      setMessages([]);
+      setSessionId(null);
+      setChatId(null);
     }
+    refreshHistory(scopeKey);
   }
 
   return (
@@ -353,15 +487,57 @@ export function ChatPanel({
             <p className="mt-0.5 text-[11px] text-zinc-500">{subtitle}</p>
           )}
         </div>
-        <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-zinc-500">
+        <div className="relative flex items-center gap-2 text-[10px] uppercase tracking-wider text-zinc-500">
           {sessionId && <span>session {sessionId.slice(0, 8)}</span>}
+          {history.length > 0 && (
+            <button
+              onClick={() => setHistoryOpen((v) => !v)}
+              className="rounded border border-zinc-800 px-2 py-0.5 transition hover:border-zinc-700 hover:text-zinc-300"
+            >
+              History ({history.length})
+            </button>
+          )}
           {messages.length > 0 && (
             <button
               onClick={reset}
               className="rounded border border-zinc-800 px-2 py-0.5 transition hover:border-zinc-700 hover:text-zinc-300"
             >
-              New chat
+              + New
             </button>
+          )}
+          {historyOpen && (
+            <div
+              onMouseLeave={() => setHistoryOpen(false)}
+              className="absolute right-0 top-full z-20 mt-1 w-80 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 shadow-2xl"
+            >
+              <div className="max-h-80 overflow-y-auto">
+                {history.map((h) => (
+                  <div
+                    key={h.id}
+                    onClick={() => loadHistoryChat(h.id)}
+                    className={`group flex items-start gap-2 border-b border-zinc-900 px-3 py-2 cursor-pointer transition hover:bg-zinc-900 ${
+                      h.id === chatId ? "bg-emerald-500/5" : ""
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[12px] normal-case tracking-normal text-zinc-200">
+                        {h.title}
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-zinc-600">
+                        {timeAgo(h.updatedAt)}
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => removeHistoryChat(h.id, e)}
+                      className="text-[14px] text-zinc-700 opacity-0 transition hover:text-rose-400 group-hover:opacity-100"
+                      aria-label="Delete chat"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </header>
