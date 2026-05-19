@@ -1,0 +1,34 @@
+{
+  "name": "web-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "thumbs": "node scripts/download-thumbnails.mjs",
+    "predev": "npm run thumbs",
+    "predev:turbo": "npm run thumbs",
+    "predev:full": "npm run thumbs",
+    "prebuild": "npm run thumbs",
+    "dev": "NODE_OPTIONS='--max-old-space-size=8192' SKIP_CREATORS=mrbeast next dev --webpack --disable-source-maps",
+    "dev:turbo": "NODE_OPTIONS='--max-old-space-size=8192' SKIP_CREATORS=mrbeast next dev --turbopack --disable-source-maps",
+    "dev:full": "NODE_OPTIONS='--max-old-space-size=8192' next dev --webpack --disable-source-maps",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "gray-matter": "^4.0.3",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

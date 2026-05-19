@@ -1,0 +1,42 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node / Next.js
+node_modules/
+.next/
+*.tsbuildinfo
+next-env.d.ts
+
+# Vault data — user-owned, never commit creator scrapes
+# (keep the analysis protocol seed file)
+content-brain/*/
+!content-brain/CLAUDE.md
+
+# User-generated assets in the webapp
+web-app/public/thumbs/
+web-app/public/avatars/*
+!web-app/public/avatars/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

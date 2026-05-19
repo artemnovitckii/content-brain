@@ -1,0 +1,119 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel0 \b \fs36 Reel & TikTok Transcriber \u8212- Setup Guide\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A tool that turns Instagram Reels and TikToks into written text. You paste a link in your Terminal, and a transcript comes back a few seconds later.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You only have to do this setup {\b once}. After that, transcribing a video takes about 10 seconds.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 What you need before you start\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A Mac (any from the last ~5 years works)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab About {\b 10\u8211-15 minutes} the first time\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab A free {\b Groq account} (we\u8217'll create it together in Step 4)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The project folder I sent you (probably as a {\f1 .zip} file)\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You don\u8217't need to know any coding. You\u8217'll just be copying and pasting commands. If something goes wrong, jump to {\b Troubleshooting} at the bottom.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 A note on Terminal\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Terminal is the app where you type commands instead of clicking buttons. It looks scary but it\u8217's just a text box. When this guide says {\b \u8220"paste this and press Enter,\u8221"} it means:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Click in the Terminal window\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Press {\f1 Cmd + V} to paste\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Press {\f1 Enter} (or {\f1 Return})\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If a command asks for your {\b Mac password}, type it and press Enter. {\b You won\u8217't see anything appear as you type} \u8212- no dots, no stars. That\u8217's normal. Just type it and press Enter.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 1 \u8212- Open Terminal\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Press {\f1 Cmd + Space} to open Spotlight Search\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Type {\b Terminal}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Press {\f1 Enter}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A window opens with some text and a blinking cursor. Leave this window open \u8212- you\u8217'll use it for every step.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 2 \u8212- Install Homebrew\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Homebrew is a free tool that installs other tools you need. If you\u8217've never installed it before, paste this into Terminal and press Enter:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 It will:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Ask for your {\b Mac password} (type it, press Enter \u8212- remember, no dots show up)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Print a lot of text and take {\b 3\u8211-5 minutes}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Finish with a message that says {\f1 Installation successful!}\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 When it finishes, it might tell you to run {\b two extra commands} to \u8220"add Homebrew to your PATH.\u8221" If it does, copy and paste those exact two commands one at a time. They\u8217'll look something like:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 echo >> /Users/yourname/.zprofile\line
+eval "$(/opt/homebrew/bin/brew shellenv)"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 If you already have Homebrew, you can skip this step.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 3 \u8212- Install ffmpeg\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ffmpeg is the tool that processes the video\u8217's audio. Paste this and press Enter:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 brew install ffmpeg\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Takes 1\u8211-2 minutes. When it\u8217's done, you\u8217'll see your blinking cursor again.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 4 \u8212- Get a free Groq API key\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Groq is the service that turns audio into text. The free tier is generous \u8212- you can transcribe hundreds of videos per day for free.\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Go to {\b https://console.groq.com} in your browser\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Sign up with your email (or Google/GitHub login)\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab On the left sidebar, click {\b API Keys}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 4.\tx360\tab Click {\b Create API Key}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 5.\tx360\tab Give it any name (like {\f1 transcriber}) and click Create\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 6.\tx360\tab {\b A long string starting with {\f1 gsk_...} will appear.} Copy it right now and paste it into a notes app \u8212- you will {\b only see it once}. If you lose it, you\u8217'll have to create a new one.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Keep this key private. Don\u8217't share it or post it online \u8212- anyone who has it can use your Groq account.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 5 \u8212- Put the project files on your Mac\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Find the {\b {\f1 reel_transcriber.zip}} file I sent you\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Double-click it to unzip \u8212- you should now have a folder called {\f1 reel_transcriber}\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Move that folder somewhere you\u8217'll remember, like your {\b Documents} folder\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 6 \u8212- Tell Terminal to enter the project folder\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In Terminal, type the following \u8212- but {\b don\u8217't press Enter yet}:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 cd \par}
+{\pard \ql \f0 \sa180 \li0 \fi0 (That\u8217's the letters {\f1 c d} followed by a single space.)\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Now {\b drag the {\f1 reel_transcriber} folder from Finder directly onto the Terminal window}. The folder\u8217's full path will appear after {\f1 cd}. Now press Enter.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You\u8217're now \u8220"inside\u8221" the project folder. Your Terminal prompt usually changes to show this.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 7 \u8212- Install the project\u8217's tools\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Paste these two commands, one at a time, pressing Enter after each:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 python3 -m venv .venv\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 .venv/bin/pip install groq yt-dlp curl_cffi\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The second one takes about a minute. You\u8217'll see a lot of {\f1 Collecting...} and {\f1 Installing...} lines. When it\u8217's done, the cursor returns and you\u8217're ready for the next step.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 8 \u8212- Save your Groq key\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Now we\u8217'll save the Groq key from Step 4 so the tool can use it. Paste this command, but {\b replace {\f1 PASTE_YOUR_KEY_HERE} with the real key} (the long {\f1 gsk_...} string):\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 echo "GROQ_API_KEY=PASTE_YOUR_KEY_HERE" > .env\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Then lock it down so only you can read it:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 chmod 600 .env\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 9 \u8212- Create the {\f1 reel} and {\f1 tiktok} shortcuts\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 These shortcuts let you type {\f1 reel} or {\f1 tiktok} from any folder, without having to be in the project folder. Paste these two commands one at a time:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 echo 'alias reel="'$(pwd)'/transcribe"' >> ~/.zshrc\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 echo 'alias tiktok="'$(pwd)'/transcribe"' >> ~/.zshrc\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Now make sure the script is allowed to run:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 chmod +x transcribe transcribe.py\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Important:} Close Terminal completely ({\f1 Cmd + Q}) and open a fresh Terminal window. The shortcut won\u8217't work until you do this.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Step 10 \u8212- Try it out!\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 In your new Terminal window, paste this (with a real Reel URL of your choice):\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 reel "https://www.instagram.com/reel/SOMEID/"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Always wrap the URL in double quotes} like above. URLs often have special characters that confuse Terminal if they\u8217're not in quotes.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 You\u8217'll see:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 [1/2] downloading audio...\line
+[2/2] transcribing (whisper-large-v3-turbo)...\line
+<the transcript appears here>\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 That\u8217's it. You\u8217're done.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Everyday usage\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 reel "https://www.instagram.com/reel/XXXX/"\line
+tiktok "https://www.tiktok.com/@user/video/XXXX"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Some handy tricks:\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b Copy transcript to clipboard:}\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 \f1 reel "URL" | pbcopy\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 Then {\f1 Cmd + V} to paste anywhere.\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b Save transcript to a file:}\par}
+{\pard \ql \f0 \sa180 \li360 \fi0 \f1 reel "URL" -o transcript.txt\par}
+{\pard \ql \f0 \sa180 \li360 \fi-360 \bullet \tx360\tab {\b Quick way to copy:} select the transcript text in Terminal and press {\f1 Cmd + C}.\sa180\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 Troubleshooting\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b \u8220"command not found: reel\u8221"} You forgot to close and reopen Terminal after Step 9. Close it completely with {\f1 Cmd + Q}, then open a new window.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b \u8220"error: GROQ_API_KEY is not set\u8221"} The {\f1 .env} file didn\u8217't save correctly, or you ran the command from the wrong folder. Go back to Step 8 and make sure you {\f1 cd} into the project folder first (Step 6).\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b The transcript is wrong / cut off / says weird things} - Check the URL is wrapped in {\f1 "double quotes"} \u8212- if not, the shell often slices off part of the URL - Some videos have music but no speech (so you\u8217'll get song lyrics or nothing) - Private accounts: if the video is from a private account you can\u8217't see, you can\u8217't transcribe it either\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b \u8220"command not found: brew\u8221"} Homebrew didn\u8217't finish setting up. Re-run those two {\f1 eval}/{\f1 echo} commands from the end of Step 2 (the ones it printed at you). If you don\u8217't remember them, run:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \f1 eval "$(/opt/homebrew/bin/brew shellenv)"\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 {\b Anything else} Send me a screenshot of the Terminal window with the error and I\u8217'll help you sort it out.\par}
+{\pard \qc \f0 \sa180 \li0 \fi0 \emdash\emdash\emdash\emdash\emdash\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \outlinelevel1 \b \fs32 How much does this cost?\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 The Groq free tier currently covers way more than typical personal use \u8212- you\u8217'd have to transcribe hundreds of videos per day to hit the limit. If you ever do, you can add a card and pay per-use, but for normal use it\u8217's effectively free.\par}
+}

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$DIR/.env"
+  set +a
+fi
+exec "$DIR/.venv/bin/python" "$DIR/transcribe.py" "$@"
