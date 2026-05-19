@@ -24,7 +24,7 @@ export default async function MegaBrainChat() {
           One conversation.<br />Every creator.
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-zinc-400">
-          Ask anything — hook patterns across creators, contradictions, what to steal from whom. Wired to{" "}
+          Best-of-the-best synthesis across every creator you've studied. Surfaces what's working, ranked by evidence. Wired to{" "}
           <strong className="text-emerald-300">{withAnalysis.length} brains</strong>,{" "}
           <strong className="text-zinc-200">{totalVideos.toLocaleString()} reels</strong>,{" "}
           <strong className="text-zinc-200">{formatNumber(totalViews)} views</strong>.
@@ -36,7 +36,7 @@ export default async function MegaBrainChat() {
           scope={{ type: "vault" }}
           title="Mega-brain"
           subtitle={`Synthesizes across ${withAnalysis.map((c) => c.slug).join(", ")}`}
-          emptyHint="Try: 'what hook formulas show up across more than one creator?' or 'compare mavgpt's CTAs vs justyn.ai's'"
+          emptyHint="Try: 'what's the strongest hook formula across all creators?' · 'rank the top CTAs by view count' · 'what works in IG that doesn't on YouTube?' · 'give me 5 hook templates I could steal'"
         />
       </div>
     </div>
