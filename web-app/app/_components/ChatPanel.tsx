@@ -86,9 +86,40 @@ export function ChatPanel({
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [shortcodeIndex, setShortcodeIndex] = useState<
+    Record<string, { slug: string; filename: string; title: string }>
+  >({});
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch the shortcode index once on mount so we can resolve [[XYZ]] to
+  // clickable links in assistant messages.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/index")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data?.shortcodes) {
+          setShortcodeIndex(data.shortcodes);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function resolveWikiLinks(text: string): string {
+    if (!text.includes("[[")) return text;
+    return text.replace(/\[\[([A-Za-z0-9_-]+)\]\]/g, (full, id: string) => {
+      const hit = shortcodeIndex[id];
+      if (!hit) return full;
+      const url = `/${encodeURIComponent(hit.slug)}/videos/${encodeURIComponent(hit.filename)}`;
+      const label = hit.title || id;
+      return `[${label}](${url})`;
+    });
+  }
 
   // Compute a per-character signal so streaming text updates trigger
   // re-scroll, not just message count changes.
@@ -295,7 +326,7 @@ export function ChatPanel({
               {m.role === "assistant" ? (
                 m.text ? (
                   <div className="prose prose-invert prose-sm prose-zinc max-w-none prose-p:my-2 prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1.5 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-code:rounded prose-code:bg-zinc-800 prose-code:px-1 prose-code:py-0.5 prose-code:text-emerald-300 prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-800 prose-a:text-emerald-300 prose-strong:text-zinc-100">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{resolveWikiLinks(m.text)}</ReactMarkdown>
                   </div>
                 ) : m.streaming ? (
                   <Thinking />

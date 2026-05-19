@@ -90,7 +90,7 @@ export default async function CreatorPage({
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h1 className="text-4xl font-semibold tracking-tight">
-              {creator.isSelf ? `${creator.displayName} — your voice` : creator.displayName}
+              {creator.displayName}
             </h1>
             <div className="flex items-center gap-2">
               <CreatorChatToggle slug={creator.slug} displayName={creator.displayName} />
