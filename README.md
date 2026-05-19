@@ -22,8 +22,8 @@ Everything runs **locally** on your machine. The only AI it uses is your **Claud
 If you have [Claude Code](https://claude.ai/code) installed, this is the easy path:
 
 ```bash
-git clone <this-repo>
-cd reel_transcriber
+git clone https://github.com/artemnovitckii/content-brain
+cd content-brain
 cp .env.example .env
 ```
 

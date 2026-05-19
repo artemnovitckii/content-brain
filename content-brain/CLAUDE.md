@@ -6,7 +6,7 @@ This folder is the user's personal Obsidian vault of scraped Instagram creators 
 2. The user's own scrape gets `Voice.md` (so Claude knows how the user sounds)
 3. When the user ideates or drafts, Claude pulls from **all the Patterns + their Voice** to suggest reels in their voice using proven structures
 
-The user runs `study <username>` (CLI in `/Users/novitckii/Documents/Code/Tools/reel_transcriber/`) to scrape. That auto-writes `videos/<shortCode>.md`, `all.md`, `all.html`, `Dashboard.md`, tags every reel, and updates `_Home.md`. **`Patterns.md`, `Playbook.md`, and `Voice.md` are written by Claude in chat** — that's how we keep quality high (free-tier Groq LLMs gave shallow output, so the analysis step is intentionally manual).
+The user adds creators through the local webapp's **+ Add creator** button (or the Python CLI scripts under the repo root). That auto-writes `videos/<shortCode>.md`, `all.md`, `all.html`, `Dashboard.md`, tags every reel, and updates `_Home.md`. **`Patterns.md`, `Playbook.md`, and `Voice.md` are written by Claude in chat** — that's how we keep quality high (free-tier Groq LLMs gave shallow output, so the analysis step is intentionally manual).
 
 ---
 
