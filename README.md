@@ -17,32 +17,27 @@ Everything runs **locally** on your machine. The only AI it uses is your **Claud
 
 ---
 
-## Quickstart (with Claude Code — recommended)
+## Quickstart (zero terminal — recommended)
 
-If you have [Claude Code](https://claude.ai/code) installed, this is the easy path:
+**Designed for people who've never coded.** All you need:
 
-```bash
-git clone https://github.com/artemnovitckii/content-brain
-cd content-brain
-cp .env.example .env
-```
+1. **[VS Code](https://code.visualstudio.com)** installed (free)
+2. A **[Claude subscription](https://claude.ai)** (Pro plan, $20/mo)
+3. Two free API keys (5 min of web signups):
+   - [console.groq.com/keys](https://console.groq.com/keys) — free tier
+   - [console.apify.com](https://console.apify.com/account/integrations) — costs ~$0.003 per reel scraped
 
-Open `.env` in your editor and paste two keys:
-- `GROQ_API_KEY` — get free at [console.groq.com/keys](https://console.groq.com/keys)
-- `APIFY_TOKEN` — get at [console.apify.com](https://console.apify.com/account/integrations) (paid, but cheap)
+**Then:**
 
-Then open the folder in VS Code, open Claude Code, and either:
+1. Download this repo (zip from GitHub or `git clone`), open the folder in VS Code (File → Open Folder…).
+2. VS Code will pop up: *"This workspace recommends the Claude Code extension"* → click **Install**, sign in.
+3. Open `.env` in VS Code's file tree, paste your two API keys, save.
+4. Open the Claude Code chat panel (sidebar icon or `Cmd+Shift+P` → "Claude Code"), and type:
+   - **`/setup`** (slash command)
+5. Claude reads `CLAUDE.md`, installs Homebrew/Node/Python/ffmpeg/yt-dlp if needed, creates the Python venv, installs npm packages, and builds the webapp. Takes 2-5 minutes. You'll see everything happen live in the integrated terminal.
+6. When Claude says "Setup done," it'll run `npm run start` for you. Open **http://localhost:3000**.
 
-- type **`/setup`** (slash command, discoverable in the command menu), or
-- type **"set this up"** (natural language — works just as well)
-
-Either way, Claude reads `CLAUDE.md` in the repo root and runs the entire install: deps, venv, npm packages, vault setup, build. Takes 2-3 minutes. When it says "Setup done," run:
-
-```bash
-cd web-app && npm run start
-```
-
-Open **http://localhost:3000**. That's it.
+That's the whole flow. **You never type a terminal command yourself** — Claude does everything through the chat. If anything goes wrong, just tell Claude what happened and it'll fix it.
 
 ---
 

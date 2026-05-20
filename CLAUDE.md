@@ -94,13 +94,33 @@ npm run build
 
 This should finish in 5-15 seconds. If it fails with a path / env error, double-check `.env` was loaded — the build step does NOT need API keys but should not crash.
 
-### Step 6 — Tell the user how to run it
+### Step 6 — Start the server FOR them
 
-When everything's green, say exactly this:
+The user is probably non-technical. Don't tell them to type a command — just run the server yourself in the background:
 
-> Setup done. Run `npm run start` from the `web-app/` directory to start the server. Then visit **http://localhost:3000** in your browser. Everything else (adding creators, analyzing, chatting) happens through the UI — no more terminal commands needed.
+```bash
+cd <repo>/web-app && npm run start
+```
 
-Optionally suggest: "Add your first creator: click `+ Add creator` in the top right, paste an Instagram username (no @), pick the platform, hit Start. You'll see the scrape happen live."
+Use `run_in_background: true` for the Bash tool call so the server keeps running while you finish the chat. Wait ~3 seconds, then verify it's up with:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+```
+
+If you get `200`, say exactly this:
+
+> Setup done — your webapp is running at **http://localhost:3000**. Open that in your browser.
+>
+> Everything from here is point-and-click in the UI:
+> - **+ Add creator** (top right) — paste any IG/TikTok/YouTube username, pick the platform, hit Start
+> - **Analyze** button on any creator's page — Claude writes their patterns + playbook
+> - **Chat** button — talk to a single creator's brain
+> - **Mega-brain** (top of home) — chat with the synthesis of all your creators
+>
+> If anything breaks, just tell me what happened — I'll fix it.
+
+If `curl` returned anything other than `200`, the server failed to start. Show the user the tail of the dev log, diagnose, fix, retry.
 
 ---
 
