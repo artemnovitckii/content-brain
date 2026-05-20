@@ -146,11 +146,13 @@ export function spawnSseStream(opts: SpawnStreamOpts): ReadableStream<Uint8Array
         }
       }
 
-      child.on("close", (code, signalName) => {
+      child.on("close", async (code, signalName) => {
         stdoutSplitter.flush();
         stderrSplitter.flush();
         try {
-          onExit?.(code, signalName, enqueue);
+          // onExit may be async (e.g. cache invalidation); await so the
+          // final `done` enqueue lands BEFORE we close the stream.
+          await onExit?.(code, signalName, enqueue);
         } catch (err) {
           enqueue(
             sseEvent({ type: "log", line: `[onExit-error] ${(err as Error).message}` }),
