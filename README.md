@@ -31,11 +31,12 @@ Open `.env` in your editor and paste two keys:
 - `GROQ_API_KEY` — get free at [console.groq.com/keys](https://console.groq.com/keys)
 - `APIFY_TOKEN` — get at [console.apify.com](https://console.apify.com/account/integrations) (paid, but cheap)
 
-Then open the folder in VS Code, open Claude Code, and type:
+Then open the folder in VS Code, open Claude Code, and either:
 
-> **set this up**
+- type **`/setup`** (slash command, discoverable in the command menu), or
+- type **"set this up"** (natural language — works just as well)
 
-Claude reads `CLAUDE.md` in the repo root and runs the entire install: deps, venv, npm packages, vault setup, build. Takes 2-3 minutes. When it says "Setup done," run:
+Either way, Claude reads `CLAUDE.md` in the repo root and runs the entire install: deps, venv, npm packages, vault setup, build. Takes 2-3 minutes. When it says "Setup done," run:
 
 ```bash
 cd web-app && npm run start
