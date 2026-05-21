@@ -106,6 +106,11 @@ export async function POST(req: NextRequest) {
   const isNewSession = !existingSession;
   const sessionId = existingSession || randomUUID();
 
+  // Sonnet is the default for chat — Opus is ~5× the cost and rarely needed
+  // for pattern lookup / chat. Override with CONTENT_BRAIN_CHAT_MODEL if you
+  // want Opus (sharper synthesis) or Haiku (cheapest).
+  const chatModel = process.env.CONTENT_BRAIN_CHAT_MODEL || "sonnet";
+
   let args: string[];
   if (isNewSession) {
     const scopeDir =
@@ -121,6 +126,8 @@ export async function POST(req: NextRequest) {
 
     args = [
       "--print",
+      "--model",
+      chatModel,
       "--session-id",
       sessionId,
       "--add-dir",
@@ -137,6 +144,8 @@ export async function POST(req: NextRequest) {
   } else {
     args = [
       "--print",
+      "--model",
+      chatModel,
       "--resume",
       sessionId,
       "--output-format",

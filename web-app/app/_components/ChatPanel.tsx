@@ -547,8 +547,21 @@ export function ChatPanel({
         className="flex-1 space-y-4 overflow-y-auto px-5 py-5"
       >
         {messages.length === 0 && (
-          <div className="flex h-full items-center justify-center text-sm text-zinc-500">
-            {emptyHint || "Ask anything."}
+          <div className="flex h-full flex-col items-center justify-center gap-4 text-sm text-zinc-500">
+            <div className="text-center">{emptyHint || "Ask anything."}</div>
+            {history.length > 0 && (
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => loadHistoryChat(history[0].id)}
+                  className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-[12px] font-medium text-emerald-300 transition hover:border-emerald-500/60 hover:bg-emerald-500/15"
+                >
+                  ↻ Continue last chat
+                </button>
+                <p className="max-w-xs text-center text-[10px] leading-relaxed text-zinc-600">
+                  New chats reload the vault from scratch — continuing an existing one is much cheaper on tokens.
+                </p>
+              </div>
+            )}
           </div>
         )}
         {messages.map((m) => (
